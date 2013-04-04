@@ -1,0 +1,45 @@
+!!! XML
+!!!
+
+%head
+  %title EditMe plugin
+  %script{:type => "text/javascript",
+    :src  => "http://code.jquery.com/jquery-latest.js"}
+  %script{:type => 'text/javascript',
+    :src => 'EditMe.js'}
+  %script{:type => 'text/javascript',
+    :src => 'jQuery.getStyleObject.js'}
+  :css
+    input.editme{
+      display: inline-block;
+      border: 1px red solid !important;
+    }
+%body
+
+  :coffee
+    $ ->
+      $('.title').editMe atr: "123"
+      $('.div').editMe tag:'textarea', class: 'edit_textarea'
+      $('.span').editMe 
+        options: 
+          2: 'text'
+      $('h1').editMe 'dasd'
+      $('.edit_other').click ->
+        $('#span2').editMe('activate')
+        console.log arguments
+      $('.edit_other2').click ->
+        $('#span2').editMe('deactivate')
+        console.log arguments
+
+  %h1 EditMe plugin
+
+  %form
+    %h2.title Title
+    .div simple text
+    %p 
+      example of inline editing
+      %span.span(data-name='span1') EditMe
+      %span.span#span2 EditMe2
+      %span.span EditMe3
+      %input.edit_other(type='button' value='act')
+      %input.edit_other2(type='button' value='deact')
