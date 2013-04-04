@@ -1,33 +1,62 @@
 (($) ->
   pluginName = 'editMe'
+  opts = {}
   methods =
     init:(options) ->
       # Defaults
       opts = $.extend
         activateEvent: 'click dblclick'
         deactivateEvent: 'blur'
+        syncEvent: 'change keyup input'
         class: ''
         type: 'text' # textarea, select
         options: false
+        hiddenPrefix: 'hidden_'
+        hiddenSuffix: ''
+        debug: true
         ,options
 
       this.each ->
-        # create hidden input
         el = $(this)
-        createInput el,opts
+        # get name of the input element
+        inputName = getInputName el
+        if inputName 
+          el.data 'EditMe',
+            name: inputName,
+            hidden: null,
+            edit: null
+          # create hidden input
+          createHiddenInput el,opts
+          el.on opts.activateEvent, (event) -> el.editMe('activate', event)
+        else
+          log 'Can\'t determine input name. Element was skipped ', el
+
     activate: ->
-      this.next().show().focus()
+      data = this.data "EditMe"
+      createEditInput this unless data.edit
+      data.edit.show().focus()
       this.hide()
-      console.log 'activate', this, arguments
+      
     deactivate: (event)->
-      console.log 'deactivate', this, arguments
-      input = $(event.target)
-      value = input.val()
-      this.text value
-      this.next().next().val(value)
-      this.show()
-      input.hide()
-    toggle: (event) ->
+      data = this.data('EditMe')
+      edit = data.edit
+      console.log 'deactivate', edit.val(), arguments
+      return this unless edit
+      value = edit.val()
+      edit.hide().remove()
+      this.text(value).show()
+      data.hidden.val value
+      data.edit = null
+      
+    toggle: (event)->
+      unless  this.data('EditMe')
+        log "Element doest\'t initialized with plugin #{pluginName}", this
+        return this
+      log this.data('EditMe')
+      if this.data('EditMe').edit 
+        this.editMe('deactivate')
+      else
+        this.editMe('activate')
 
     change: (event)->
       input = $(event.target)
@@ -38,41 +67,50 @@
 
 
   #Private
-  createInput = (el, opts)->
+  getInputName = (el)->
     inputName = if id = el.attr('id') then id else null
     if name = el.data('name') then inputName = name
-    return unless inputName # ignore fields with undefined id or data-name
-    
-    el.on  opts.activateEvent, (event) -> el.editMe('activate', event)
+    return inputName # ignore fields with undefined id or data-name
 
+  createHiddenInput = (el)->
     hidden = $("<input/>",
-      name: 'hidden_' + inputName
+      name: "#{opts.hiddenPrefix}#{el.data('EditMe').name}#{opts.hiddenSuffix}"
       type: "hidden"
       value: $.trim el.text()
     )
     el.after hidden
+    el.data('EditMe').hidden = hidden
 
+  createEditInput = (el)->
     input = $('<input/>',
-      name: 'input_' + inputName
+      #name: 'input_' + inputName
       type: "text"
-      class: "editMe editField" 
+      class: "editMe" 
       value: $.trim el.text()
-    ).hide()
-    el.after input
+    )
     input.on opts.deactivateEvent, (event)-> el.editMe('deactivate', event)
-    input.on 'change keyup input', (event)-> el.editMe('change', event)
+    input.on opts.syncEvent, (event)-> el.editMe('change', event)
+    el.after input
+    el.data('EditMe').edit = input
 
+    applyStyles el, input
+  #end
+ 
+  applyStyles = (src, dest)->
+    dest.height src.height()
+    dest.width src.width()
 
-    #input.css el.getStyleObject()
-    input.height el.height()
-    input.width el.width()
-    
+  
+  # Util
+  log = (msg, other...)->
+    if opts.debug
+      console.log "DUBUG:", msg, other
+
   $.fn.editMe = (method) ->
     if methods[method]
       methods[method].apply  this, Array.prototype.slice.call( arguments, 1)
     else if typeof method is 'object' || ! method
       methods.init.apply this, arguments 
     else
-      console.log "Method #{method} does not exist on jQuery.#{pluginName}"
-  #end
+      log "Method #{method} does not exist on jQuery.#{pluginName}"
 )(jQuery)

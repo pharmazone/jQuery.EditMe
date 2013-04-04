@@ -18,12 +18,16 @@
 
   :coffee
     $ ->
-      $('.title').editMe atr: "123"
+      $('.title').editMe()
       $('.div').editMe tag:'textarea', class: 'edit_textarea'
       $('.span').editMe 
         options: 
           2: 'text'
+      $('.span2').editMe 
+        options: 
+          2: 'eeeee'
       $('h1').editMe 'dasd'
+      $('#toggle').editMe 'dasd'
       $('.edit_other').click ->
         $('#span2').editMe('activate')
         console.log arguments
@@ -31,15 +35,20 @@
         $('#span2').editMe('deactivate')
         console.log arguments
 
+      $('.edit_edit').click ->
+        $('#toggle').editMe('toggle')
+
   %h1 EditMe plugin
 
   %form
-    %h2.title Title
+    %h2.title#title Title
     .div simple text
     %p 
       example of inline editing
       %span.span(data-name='span1') EditMe
       %span.span#span2 EditMe2
-      %span.span EditMe3
+      %span.span#toggle EditMe3
+      %span.span2 opts
       %input.edit_other(type='button' value='act')
       %input.edit_other2(type='button' value='deact')
+      %input.edit_edit(type='button' value='toggle')
