@@ -74,12 +74,17 @@
         }
       },
       change: function(event) {
-        var input, value;
-        input = $(event.target);
-        value = input.val();
+        var data, edit, value;
+        if (!this.data('EditMe')) {
+          log("Element doest\'t initialized with plugin " + pluginName, this);
+          return this;
+        }
+        data = this.data('EditMe');
+        edit = data.edit;
+        value = edit.val();
         this.text(value);
-        input.next().val(value);
-        return console.log('changed', $(this), value, input);
+        data.hidden.val(value);
+        return applyStyles(this, edit);
       }
     };
     getInputName = function(el) {

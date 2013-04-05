@@ -20,7 +20,7 @@
         el = $(this)
         # get name of the input element
         inputName = getInputName el
-        if inputName 
+        if inputName
           el.data 'EditMe',
             name: inputName,
             hidden: null,
@@ -53,17 +53,21 @@
         log "Element doest\'t initialized with plugin #{pluginName}", this
         return this
       log this.data('EditMe')
-      if this.data('EditMe').edit 
+      if this.data('EditMe').edit
         this.editMe('deactivate')
       else
         this.editMe('activate')
 
     change: (event)->
-      input = $(event.target)
-      value = input.val()
+      unless  this.data('EditMe')
+        log "Element doest\'t initialized with plugin #{pluginName}", this
+        return this
+      data = this.data('EditMe')
+      edit = data.edit
+      value = edit.val()
       this.text value
-      input.next().val value
-      console.log 'changed', $(this),value, input
+      data.hidden.val value
+      applyStyles this, edit
 
 
   #Private
@@ -85,7 +89,7 @@
     input = $('<input/>',
       #name: 'input_' + inputName
       type: "text"
-      class: "editMe" 
+      class: "editMe"
       value: $.trim el.text()
     )
     input.on opts.deactivateEvent, (event)-> el.editMe('deactivate', event)
@@ -108,9 +112,10 @@
 
   $.fn.editMe = (method) ->
     if methods[method]
+      #TODO: check if element covered with plugin
       methods[method].apply  this, Array.prototype.slice.call( arguments, 1)
     else if typeof method is 'object' || ! method
-      methods.init.apply this, arguments 
+      methods.init.apply this, arguments
     else
       log "Method #{method} does not exist on jQuery.#{pluginName}"
 )(jQuery)
